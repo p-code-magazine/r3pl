@@ -6,8 +6,6 @@ import RandExp from 'randexp';
 
 import { PCode } from '@h4us/p-code';
 
-import Nav from '../components/nav';
-
 export default function IndexPage() {
   const [runlog, setRunlog] = useState([]);
   const [minibuf, setMinibuf] = useState('');
@@ -190,13 +188,7 @@ export default function IndexPage() {
 
   return (
     <>
-      {/* <Nav/> */}
-
       <main>
-        {/* <p> */}
-        {/*   {`You've pressed Control+. ${count} times.`} */}
-        {/* </p> */}
-
         <div className="px-5 py-5">
           <ul className="break-all">
             {
