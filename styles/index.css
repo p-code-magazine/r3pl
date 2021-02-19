@@ -2,6 +2,21 @@
 
 /* Write your own custom base styles here */
 
+@font-face {
+  font-family: Inconsolata;
+  src: url('./Inconsolata-VF.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  font-family: "Inconsolata", "Monaco", sans-serif;
+}
+
+body, html {
+  overscroll-behavior: none;
+}
+
 /* Start purging... */
 @tailwind components;
 /* Stop purging. */

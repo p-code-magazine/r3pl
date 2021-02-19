@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@h4us/p-code": "git+https://github.com/h4us/p-code.git#experimental",
-    "next": "^10.0.6",
+    "next": "^10.0.7",
     "next-plugin-preact": "^3.0.3",
     "next-pwa": "^5.0.5",
     "preact": "^10.5.12",
@@ -23,13 +23,15 @@
     "react": "npm:@preact/compat@0.0.4",
     "react-dom": "npm:@preact/compat@0.0.4",
     "react-hotkeys-hook": "^3.1.0",
-    "react-textarea-autosize": "^8.3.1"
+    "react-intersection-observer": "^8.31.0",
+    "react-textarea-autosize": "^8.3.1",
+    "react-use-gesture": "^9.0.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.16",
+    "@babel/core": "^7.12.17",
     "postcss-flexbugs-fixes": "4.2.1",
     "postcss-preset-env": "^6.7.0",
-    "tailwindcss": "^1.9.6",
+    "tailwindcss": "^2.0.3",
     "webpack": "^4.45.0"
   },
   "license": "MIT"
