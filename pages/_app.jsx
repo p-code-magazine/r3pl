@@ -1,8 +1,18 @@
+import { useState, useEffect, useRef } from 'react';
+
 import Head from 'next/head';
+import { useRouter } from 'next/router';
+
+import { PlaygroundContext } from '../components/playgroundcontext';
 
 import '../styles/index.css';
 
 function MyApp({ Component, pageProps }) {
+  const router = useRouter();
+
+  // TODO:
+  const loginNameRef = useRef('');
+
   return (
     <>
       <Head>
@@ -32,7 +42,16 @@ function MyApp({ Component, pageProps }) {
         {/* <link rel="apple-touch-icon" href="/apple-icon.png"></link> */}
         {/* <meta name="theme-color" content="#317EFB" /> */}
       </Head>
-      <Component {...pageProps} />
+
+      {
+        /\/*(entry|playground).*/.test(router.pathname) ? (
+          <PlaygroundContext.Provider value={{ loginNameRef }}>
+            <Component {...pageProps} />
+          </PlaygroundContext.Provider>
+        ) : (
+          <Component {...pageProps} />
+        )
+      }
     </>
   );
 }
