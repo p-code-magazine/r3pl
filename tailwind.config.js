@@ -9,6 +9,10 @@ module.exports = {
       colors: {
         'accent-1': '#333',
       },
+
+      fill: theme => ({
+        blue: theme('colors.blue.300')
+      })
     },
   },
   variants: {},

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useReducer } from 'react';
+import { useEffect, useRef, useState, useReducer, useContext } from 'react';
 
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useGesture } from 'react-use-gesture';
@@ -6,8 +6,79 @@ import { useInView } from 'react-intersection-observer';
 
 import TextareaAutosize from 'react-textarea-autosize';
 import RandExp from 'randexp';
+import io from 'socket.io-client';
 
 import { PCode } from '@h4us/p-code';
+
+import { PlaygroundContext } from '../../components/playgroundcontext';
+
+import SimpleHelp from '../../components/SimpleHelp';
+import HotkeyButtons from '../../components/HotkeyButtons';
+import LogList from '../../components/LogList';
+
+const initSIO = (url = '/', userName = '', sioRef= { current: false }) => {
+  const instance = sioRef;
+
+  instance.current = io(url);
+
+  instance.current.on('login', (data) => {
+    console.info('login');
+    // this.numUsers = data.numUsers;
+    // this.tabText = `server: online[${data.numUsers}]`;
+  });
+
+  instance.current.on('new message', (data) => {
+    console.info('new message', data);
+    // this.pushMessage('server', data);
+  });
+
+  instance.current.on('reply command', (data) => {
+    console.info('reply command');
+    // const { message = [], action } = data;
+    // if (action == 'H' && message.length > 0) {
+    //   this.serverHistory.splice(0, 0, ...message.reverse());
+    //   this.serverHistoryIndex = message.length - 1;
+    //   this.showHistory = 'server';
+    // }
+
+    // if (action == 'P' && message.length > 0) {
+    //   //
+    // }
+  });
+
+  instance.current.on('user joined', (data) => {
+    console.info('user joined');
+    // this.numUsers = data.numUsers;
+    // this.tabText = `server: online[${data.numUsers}]`;
+  });
+
+  instance.current.on('user left', (data) => {
+    console.info('user left');
+    // this.numUsers = data.numUsers;
+    // this.tabText = `server: online[${data.numUsers}]`;
+  });
+
+  instance.current.on('typing', (data) => {
+    // if (this.typingUsers.findIndex((el) => el == data.username) < 0) {
+    //   this.typingUsers.push(data.username);
+    // }
+
+    // this.tabText = `server: online[${data.numUsers}] | ${this.typingUsers.join(',')} typing..`;
+  });
+
+  instance.current.on('disconnect', () => {
+    console.info('you have been disconnected');
+  });
+
+  instance.current.on('reconnect', () => {
+    // if (this.userName.length > 0) {
+    //   instance.current.emit('add user', this.userName);
+    // }
+    console.info('you have been reconnected');
+  });
+
+  instance.current.emit('add user', userName);
+};
 
 const replReducer = (state, action) => {
   const { logSize } = state;
@@ -72,6 +143,8 @@ const replReducer = (state, action) => {
 };
 
 export default function IndexPage() {
+  const { loginNameRef } = useContext(PlaygroundContext);
+
   const [elapsed, setElapsed] = useState(0);
 
   const pRef = useRef('');
@@ -92,6 +165,8 @@ export default function IndexPage() {
 
   const vpH = useRef(0);
   const vpOh = useRef(0);
+
+  const sioRef = useRef();
 
   const runloop = (time) => {
     if (previousTimeRef.current != undefined) {
@@ -185,7 +260,16 @@ export default function IndexPage() {
     const execute = (replState.stack.length > 0) ? replState.stack : pRef.current.value;
 
     if (execute.length > 0) {
+      // TODO--
+      sioRef.current.emit(
+        'new message', {
+        message: (replState.rStack.length > 0 ? [execute, replState.rStack] : execute),
+        bus: 0
+      }
+      );
+
       replDispatch({ type: 'run', payload: { log: execute } });
+
       pRef.current.value = '';
 
       if (replState.lastAction == 'run' && replState.log.length > 0) {
@@ -289,6 +373,8 @@ export default function IndexPage() {
   useEffect(() => {
     let pendingUpdate = false;
 
+    console.log(loginNameRef, loginNameRef.current);
+
     function viewportHandler(event) {
 
       if (pendingUpdate) return;
@@ -316,6 +402,8 @@ export default function IndexPage() {
     window.visualViewport.addEventListener('scroll', viewportHandler);
     window.visualViewport.addEventListener('resize', viewportHandler);
 
+    initSIO(process.env.NEXT_PUBLIC_API_SERVER, loginNameRef.current, sioRef);
+
     requestRef.current = requestAnimationFrame(runloop);
     return () => cancelAnimationFrame(requestRef.current);
   }, []);
@@ -329,34 +417,7 @@ export default function IndexPage() {
         <div
           className="px-5 pt-5 py-24 overscroll-y-none"
           ref={logListRef}>
-          <ul className="break-all">
-            {/* TODO: */}
-            {
-              replState.log.length > 0 &&
-              replState.log.slice(replState.seekIndex, replState.seekIndex + 30).map((el, i) => (
-                i == 0 ? (
-                  <li className="flex items-start log-item-first" ref={logStartRef}>
-                    <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.seekIndex, 0) + i}</span>
-                    <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el[0]}</mark>
-                  </li>
-                ) : (
-                    (replState.log.length > 1 && i == (Math.min(replState.log.length, replState.seekIndex + 30) - 1)) ? (
-                      <li className="flex items-start log-item-last" ref={logEndRef}>
-                        <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.seekIndex, 0) + i}</span>
-                        <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el[0]}</mark>
-                      </li>
-
-                    ) : (
-                        <li className="flex items-start">
-                          <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.seekIndex, 0) + i}</span>
-                          <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el[0]}</mark>
-                        </li>
-                      )
-                  )
-              ))
-            }
-            {/* --  */}
-          </ul>
+          <LogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} />
         </div>
       </main>
 
@@ -389,54 +450,16 @@ export default function IndexPage() {
         </div>
 
         {/* help */}
-        <div className="w-full pl-16 pr-5 my-2 text-gray-700 text-xs italic hidden md:block">
-          {
-            (!replState.stack || replState.stack.length == 0) ?
-              `<Ctrl+Enter> Run | <Ctrl+Space> Random regexp completion`
-              : `<Ctrl+Enter> Run | <Ctrl+Space> Random regexp completion | <Enter> Edit result | <Esc> Clear completion`
-          }
-          {
-            replState.log.length > 0 &&
-            ` | <Ctrl+,> History backward | <Ctrl+.> History forward`
-          }
-          {
-            (replState.rStack?.length > 0 && !['run', 'regexp'].includes(replState.lastAction)) &&
-            ` | <Esc> Pop original RegExp`
-          }
-        </div>
+        <SimpleHelp replState={replState} />
 
-        <nav className="w-full flex md:hidden justify-between items-stretch">
-          <button
-            onClick={() => runAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            run
-          </button>
-          <button
-            onClick={() => regexpAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            regexp
-          </button>
-          <button
-            onClick={() => resetAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            reset
-          </button>
-          <button
-            onClick={() => popAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            pop
-          </button>
-          <button
-            onClick={() => incAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            rev
-          </button>
-          <button
-            onClick={() => decAction()}
-            className="flex-1 p-2 text-white bg-gray-800 focus:outline-none focus:shadow-outline">
-            fwd
-          </button>
-        </nav>
+        {/* hotkey alternative, for mobile device */}
+        <HotkeyButtons
+          runAction={runAction}
+          regexpAction={regexpAction}
+          resetAction={resetAction}
+          popAction={popAction}
+          incAction={incAction}
+          decAction={decAction} />
       </footer>
     </>
   );
