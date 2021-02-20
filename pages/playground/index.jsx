@@ -4,6 +4,8 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useGesture } from 'react-use-gesture';
 import { useInView } from 'react-intersection-observer';
 
+import { useRouter } from 'next/router';
+
 import TextareaAutosize from 'react-textarea-autosize';
 import RandExp from 'randexp';
 
@@ -20,6 +22,7 @@ import ServerLogList from '../../components/ServerLogList';
 
 export default function IndexPage() {
   const { loginNameRef } = useContext(PlaygroundContext);
+  const router = useRouter();
 
   const [elapsed, setElapsed] = useState(0);
 
@@ -310,6 +313,10 @@ export default function IndexPage() {
 
   useEffect(() => {
     let pendingUpdate = false;
+
+    if (!loginNameRef.current) {
+      router.push('/entry');
+    }
 
     function viewportHandler(event) {
 
