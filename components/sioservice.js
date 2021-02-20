@@ -13,12 +13,12 @@ export default function sioservice(url = '/', userName = '', sioRef = { current:
   });
 
   instance.current.on('new message', (data) => {
-    const { username = '', message = '', r = false } = data;
+    const { username = '', message = '', r = false, timestamp } = data;
 
     dispatch({
       type: 'server-reply',
       payload: {
-        username, message, regexp: r
+        username, message, regexp: r, timestamp
       }
     });
     bang((n) => n + 1);

@@ -14,6 +14,7 @@ export default function replReducer(state, action) {
         logSize: ret.log.length,
         stack: '',
         rStack: '',
+        lastRun: Date.now()
       });
       break;
     case 'seek':
@@ -49,7 +50,7 @@ export default function replReducer(state, action) {
         rStack: ''
       });
       break;
-  case 'server-reply':
+    case 'server-reply':
       ret.serverLog.push(payload);
       ret = Object.assign(ret, {
         serverLogIndex: ret.serverLog.length,

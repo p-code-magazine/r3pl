@@ -26,8 +26,7 @@ export default function IndexPage() {
   const pRef = useRef('');
   const logAreaRef = useRef();
   const logListRef = useRef();
-  const pCodeRef = useRef();
-  // const pCodeRef = useRef([false, false, false, false]);
+  const pCodeRef = useRef([false, false, false, false]);
   const requestRef = useRef();
   const previousTimeRef = useRef();
 
@@ -52,20 +51,24 @@ export default function IndexPage() {
 
       if (deltaTime > (1000 / fps)) {
         if (pCodeRef.current != undefined) {
-          if (pCodeRef.current.isPlaying) {
-            if (pCodeRef.current.hasNext()) {
-              let node = pCodeRef.current.tokens[pCodeRef.current.pointer];
-              pCodeRef.current.execute(node);
-              pCodeRef.current.next();
-            } else {
-              pCodeRef.current.isPlaying = false;
-            }
-          } else {
-            if (pCodeRef.current.doLoop) {
-              pCodeRef.current.reset();
-              pCodeRef.current.isPlaying = true;
-            } else {
-              pCodeRef.current.stop();
+          for(let el of pCodeRef.current) {
+            if (el) {
+              if (el.isPlaying) {
+                if (el.hasNext()) {
+                  let node = el.tokens[el.pointer];
+                  el.execute(node);
+                  el.next();
+                } else {
+                  el.isPlaying = false;
+                }
+              } else {
+                if (el.doLoop) {
+                  el.reset();
+                  el.isPlaying = true;
+                } else {
+                  el.stop();
+                }
+              }
             }
           }
         }
@@ -150,16 +153,30 @@ export default function IndexPage() {
       pRef.current.value = '';
 
       if (replState.lastAction == 'run' && replState.log.length > 0) {
-        if (pCodeRef.current == undefined) {
-          pCodeRef.current = new PCode({
-            defaultVolume: -12,
-            comment: { enable: true },
-            meta: { enable: true }
-          });
-        }
-
         if (pCodeRef.current != undefined) {
-          pCodeRef.current.run(replState.log[replState.log.length - 1][0]);
+          const n = Math.floor(Math.random() * pCodeRef.current.length);
+
+          console.log('in bus -> ', n);
+
+          pCodeRef.current = pCodeRef.current.map((el, i) => {
+            if (i == n) {
+              let p;
+              if (!el) {
+                p = new PCode({
+                  defaultVolume: -12,
+                  comment: { enable: true },
+                  meta: { enable: true }
+                });
+                p.run(replState.log[replState.log.length - 1][0]);
+              } else {
+                p = el;
+                p.run(replState.log[replState.log.length - 1][0]);
+              }
+              return p;
+            } else {
+              return el;
+            }
+          });
         }
       }
 
@@ -182,7 +199,8 @@ export default function IndexPage() {
     //
     stack: '',
     rStack: '',
-    lastAction: ''
+    lastAction: '',
+    lastRun: 0
   });
 
   useHotkeys(
@@ -253,6 +271,41 @@ export default function IndexPage() {
     if (['run', 'reset', 'push', 'pop'].includes(replState.lastAction)) {
       pRef.current.focus();
     }
+
+    if (replState.serverLogSize > 0) {
+      const slast = replState.serverLog[replState.serverLogSize - 1];
+      const sts = new Date(slast.timestamp).getTime();
+
+      console.log('remote?', sts > replState.lastRun);
+
+      if (sts > replState.lastRun) {
+        if (pCodeRef.current != undefined) {
+          const n = Math.floor(Math.random() * pCodeRef.current.length);
+
+          console.log('remote! in bus -> ', n);
+
+          pCodeRef.current = pCodeRef.current.map((el, i) => {
+            if (i == n) {
+              let p;
+              if (!el) {
+                p = new PCode({
+                  defaultVolume: -12,
+                  comment: { enable: true },
+                  meta: { enable: true }
+                });
+                p.run(replState.log[replState.log.length - 1][0]);
+              } else {
+                p = el;
+                p.run(replState.log[replState.log.length - 1][0]);
+              }
+              return p;
+            } else {
+              return el;
+            }
+          });
+        }
+      }
+    }
   }, [elapsed]);
 
   useEffect(() => {
@@ -295,7 +348,7 @@ export default function IndexPage() {
     requestRef.current = requestAnimationFrame(runloop);
     return () => {
       cancelAnimationFrame(requestRef.current);
-      if (sioRef.current) sioRef.current.dissconnect();
+      if (sioRef.current) sioRef.current.disconnect();
     };
   }, []);
 
