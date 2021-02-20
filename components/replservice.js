@@ -14,6 +14,7 @@ export default function replReducer(state, action) {
         logSize: ret.log.length,
         stack: '',
         rStack: '',
+        seekIndex: Math.max(ret.log.length - 30, 0),
         lastRun: Date.now()
       });
       break;
@@ -55,7 +56,11 @@ export default function replReducer(state, action) {
       ret = Object.assign(ret, {
         serverLogIndex: ret.serverLog.length,
         serverLogSize: ret.serverLog.length,
+        serverSeekIndex: Math.max(ret.serverLog.length - 30, 0),
       });
+      break;
+    case 'server-run':
+      ret.lastRun = Date.now();
       break;
     default:
       console.log('default', type, payload);

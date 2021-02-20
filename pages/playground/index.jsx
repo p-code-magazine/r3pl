@@ -276,13 +276,11 @@ export default function IndexPage() {
       const slast = replState.serverLog[replState.serverLogSize - 1];
       const sts = new Date(slast.timestamp).getTime();
 
-      console.log('remote?', sts > replState.lastRun);
-
       if (sts > replState.lastRun) {
         if (pCodeRef.current != undefined) {
           const n = Math.floor(Math.random() * pCodeRef.current.length);
 
-          console.log('remote! in bus -> ', n);
+          console.log('remote! in bus -> ', n, sts, replState.lastRun);
 
           pCodeRef.current = pCodeRef.current.map((el, i) => {
             if (i == n) {
@@ -303,6 +301,8 @@ export default function IndexPage() {
               return el;
             }
           });
+
+          replDispatch({ type: 'server-run' });
         }
       }
     }
