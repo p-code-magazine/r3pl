@@ -1,4 +1,4 @@
-export default function HotkeyButtons(props) {
+export default function LogList(props) {
   const { replState, logStartRef, logEndRef } = props;
 
   return (

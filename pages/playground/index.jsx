@@ -6,141 +6,17 @@ import { useInView } from 'react-intersection-observer';
 
 import TextareaAutosize from 'react-textarea-autosize';
 import RandExp from 'randexp';
-import io from 'socket.io-client';
 
 import { PCode } from '@h4us/p-code';
 
 import { PlaygroundContext } from '../../components/playgroundcontext';
+import sioservice from '../../components/sioservice';
+import replReducer from '../../components/replservice';
 
 import SimpleHelp from '../../components/SimpleHelp';
 import HotkeyButtons from '../../components/HotkeyButtons';
 import LogList from '../../components/LogList';
-
-const initSIO = (url = '/', userName = '', sioRef= { current: false }) => {
-  const instance = sioRef;
-
-  instance.current = io(url);
-
-  instance.current.on('login', (data) => {
-    console.info('login');
-    // this.numUsers = data.numUsers;
-    // this.tabText = `server: online[${data.numUsers}]`;
-  });
-
-  instance.current.on('new message', (data) => {
-    console.info('new message', data);
-    // this.pushMessage('server', data);
-  });
-
-  instance.current.on('reply command', (data) => {
-    console.info('reply command');
-    // const { message = [], action } = data;
-    // if (action == 'H' && message.length > 0) {
-    //   this.serverHistory.splice(0, 0, ...message.reverse());
-    //   this.serverHistoryIndex = message.length - 1;
-    //   this.showHistory = 'server';
-    // }
-
-    // if (action == 'P' && message.length > 0) {
-    //   //
-    // }
-  });
-
-  instance.current.on('user joined', (data) => {
-    console.info('user joined');
-    // this.numUsers = data.numUsers;
-    // this.tabText = `server: online[${data.numUsers}]`;
-  });
-
-  instance.current.on('user left', (data) => {
-    console.info('user left');
-    // this.numUsers = data.numUsers;
-    // this.tabText = `server: online[${data.numUsers}]`;
-  });
-
-  instance.current.on('typing', (data) => {
-    // if (this.typingUsers.findIndex((el) => el == data.username) < 0) {
-    //   this.typingUsers.push(data.username);
-    // }
-
-    // this.tabText = `server: online[${data.numUsers}] | ${this.typingUsers.join(',')} typing..`;
-  });
-
-  instance.current.on('disconnect', () => {
-    console.info('you have been disconnected');
-  });
-
-  instance.current.on('reconnect', () => {
-    // if (this.userName.length > 0) {
-    //   instance.current.emit('add user', this.userName);
-    // }
-    console.info('you have been reconnected');
-  });
-
-  instance.current.emit('add user', userName);
-};
-
-const replReducer = (state, action) => {
-  const { logSize } = state;
-  const { type, payload } = action;
-
-  let ret = state;
-
-  switch (type) {
-    case 'run':
-      ret.log.push(
-        state.rStack ? [payload.log, state.rStack] : [payload.log]
-      );
-      ret = Object.assign(ret, {
-        logIndex: ret.log.length,
-        logSize: ret.log.length,
-        stack: '',
-        rStack: '',
-      });
-      break;
-    case 'seek':
-      const sd = state.seekIndex + payload.seekDelta;
-      ret.seekIndex = Math.min(Math.max(state.logSize - 30, 0), Math.max(sd, 0));
-      break;
-    case 'inc':
-      ret.logIndex = Math.min(state.logIndex + 1, Math.max(logSize - 1, 0));
-      ret.stack = state.log.length > 0 ? state.log[ret.logIndex][0] : '';
-      ret.rStack = (state.log.length > 0 && state.log[ret.logIndex].length > 1) ? state.log[ret.logIndex][1] : '';
-      break;
-    case 'dec':
-      ret.logIndex = Math.max(state.logIndex - 1, 0);
-      ret.stack = state.log.length > 0 ? state.log[ret.logIndex][0] : '';
-      ret.rStack = (state.log.length > 0 && state.log[ret.logIndex].length > 1) ? state.log[ret.logIndex][1] : '';
-      break;
-    case 'regexp':
-      ret = Object.assign(ret, {
-        stack: payload.result,
-        rStack: payload.rStack
-      });
-      break;
-    case 'pop':
-      ret.stack = '';
-      break;
-    // case 'push':
-    //   break;
-    case 'reset':
-      ret = Object.assign(ret, {
-        logIndex: Math.max(payload ? payload.logSize : logSize, 0),
-        logSize: (payload ? payload.logSize : logSize),
-        stack: '',
-        rStack: ''
-      });
-      break;
-    default:
-      break;
-  }
-
-  ret.lastAction = type;
-
-  console.log('mutate =>', ret);
-
-  return ret;
-};
+import ServerLogList from '../../components/ServerLogList';
 
 export default function IndexPage() {
   const { loginNameRef } = useContext(PlaygroundContext);
@@ -151,6 +27,7 @@ export default function IndexPage() {
   const logAreaRef = useRef();
   const logListRef = useRef();
   const pCodeRef = useRef();
+  // const pCodeRef = useRef([false, false, false, false]);
   const requestRef = useRef();
   const previousTimeRef = useRef();
 
@@ -260,12 +137,12 @@ export default function IndexPage() {
     const execute = (replState.stack.length > 0) ? replState.stack : pRef.current.value;
 
     if (execute.length > 0) {
-      // TODO--
+      // TODO:
       sioRef.current.emit(
         'new message', {
-        message: (replState.rStack.length > 0 ? [execute, replState.rStack] : execute),
-        bus: 0
-      }
+          message: (replState.rStack.length > 0 ? [execute, replState.rStack] : execute),
+          bus: 0
+        }
       );
 
       replDispatch({ type: 'run', payload: { log: execute } });
@@ -291,10 +168,18 @@ export default function IndexPage() {
   };
 
   const [replState, replDispatch] = useReducer(replReducer, {
+    // TODO:
+    //
     log: [],
     logIndex: 0,
     logSize: 0,
     seekIndex: 0,
+    //
+    serverLog: [],
+    serverLogIndex: 0,
+    serverLogSize: 0,
+    serverSeekIndex: 0,
+    //
     stack: '',
     rStack: '',
     lastAction: ''
@@ -373,8 +258,6 @@ export default function IndexPage() {
   useEffect(() => {
     let pendingUpdate = false;
 
-    console.log(loginNameRef, loginNameRef.current);
-
     function viewportHandler(event) {
 
       if (pendingUpdate) return;
@@ -402,22 +285,38 @@ export default function IndexPage() {
     window.visualViewport.addEventListener('scroll', viewportHandler);
     window.visualViewport.addEventListener('resize', viewportHandler);
 
-    initSIO(process.env.NEXT_PUBLIC_API_SERVER, loginNameRef.current, sioRef);
+    sioservice(
+      process.env.NEXT_PUBLIC_API_SERVER,
+      loginNameRef.current, sioRef,
+      replDispatch,
+      setElapsed
+    );
 
     requestRef.current = requestAnimationFrame(runloop);
-    return () => cancelAnimationFrame(requestRef.current);
+    return () => {
+      cancelAnimationFrame(requestRef.current);
+      if (sioRef.current) sioRef.current.dissconnect();
+    };
   }, []);
 
   return (
     <>
       <main
-        className="absolute left-0 top-0 w-full max-h-screen overflow-y-scroll"
+        className="absolute left-0 top-0 flex w-full max-h-screen overflow-y-scroll"
         ref={logAreaRef}>
-        {/* history */}
+
+        {/* history: local */}
         <div
-          className="px-5 pt-5 py-24 overscroll-y-none"
+          className="px-5 pt-5 py-24 overscroll-y-none w-1/2"
           ref={logListRef}>
           <LogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} />
+        </div>
+
+        {/* history: server */}
+        <div
+          ref={logListRef}
+          className="px-5 pt-5 py-24 overscroll-y-none w-1/2">
+          <ServerLogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} />
         </div>
       </main>
 
