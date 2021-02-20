@@ -26,7 +26,7 @@ export default function IndexPage() {
   const pRef = useRef('');
   const logAreaRef = useRef();
   const logListRef = useRef();
-  const pCodeRef = useRef([false, false, false, false]);
+  const pCodeRef = useRef([false, false, false, false, false, false]);
   const requestRef = useRef();
   const previousTimeRef = useRef();
 
@@ -141,10 +141,13 @@ export default function IndexPage() {
 
     if (execute.length > 0) {
       // TODO:
+      const nbus = Math.floor(Math.random() * pCodeRef.current.length);
+      // --
+
       sioRef.current.emit(
         'new message', {
           message: (replState.rStack.length > 0 ? [execute, replState.rStack] : execute),
-          bus: 0
+          bus: nbus
         }
       );
 
@@ -154,12 +157,10 @@ export default function IndexPage() {
 
       if (replState.lastAction == 'run' && replState.log.length > 0) {
         if (pCodeRef.current != undefined) {
-          const n = Math.floor(Math.random() * pCodeRef.current.length);
-
-          console.log('in bus -> ', n);
+          console.log('in bus -> ', nbus);
 
           pCodeRef.current = pCodeRef.current.map((el, i) => {
-            if (i == n) {
+            if (i == nbus) {
               let p;
               if (!el) {
                 p = new PCode({
@@ -276,16 +277,12 @@ export default function IndexPage() {
       const slast = replState.serverLog[replState.serverLogSize - 1];
       const sts = new Date(slast.timestamp).getTime();
 
-      console.log('remote?', sts > replState.lastRun);
-
       if (sts > replState.lastRun) {
         if (pCodeRef.current != undefined) {
-          const n = Math.floor(Math.random() * pCodeRef.current.length);
-
-          console.log('remote! in bus -> ', n);
+          const sc = replState.serverLog[replState.serverLogSize - 1];
 
           pCodeRef.current = pCodeRef.current.map((el, i) => {
-            if (i == n) {
+            if (i == parseInt(sc.bus)) {
               let p;
               if (!el) {
                 p = new PCode({
@@ -293,16 +290,19 @@ export default function IndexPage() {
                   comment: { enable: true },
                   meta: { enable: true }
                 });
-                p.run(replState.log[replState.log.length - 1][0]);
+                p.run(sc.message);
               } else {
                 p = el;
-                p.run(replState.log[replState.log.length - 1][0]);
+                p.run(sc.message);
               }
+              console.log('remote! in bus -> ', sc.bus);
               return p;
             } else {
               return el;
             }
           });
+
+          replDispatch({ type: 'server-run' });
         }
       }
     }
