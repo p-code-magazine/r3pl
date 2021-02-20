@@ -46,6 +46,7 @@ export default function IndexPage() {
   const vpOh = useRef(0);
 
   const sioRef = useRef();
+  const busRef = useRef('auto');
 
   const runloop = (time) => {
     if (previousTimeRef.current != undefined) {
@@ -144,7 +145,25 @@ export default function IndexPage() {
 
     if (execute.length > 0) {
       // TODO:
-      const nbus = Math.floor(Math.random() * pCodeRef.current.length);
+      const isLocal = /^\$ .+/.test(execute);
+
+      if (isLocal) {
+        //! set audio bus
+        if (execute.indexOf('$ bus') == 0) {
+          const bVal = execute.replace('$ bus ', '');
+          const bNum = parseInt(bVal);
+
+          if (!isNaN(bNum) && bNum < pCodeRef.current.length && bNum >= 0) {
+            busRef.current = bNum;
+          } else if (bVal == 'auto') {
+            busRef.current = 'auto';
+          }
+        }
+      }
+
+      //
+      // const nbus = Math.floor(Math.random() * pCodeRef.current.length);
+      const nbus = busRef.current == 'auto' ? Math.floor(Math.random() * pCodeRef.current.length) : busRef.current;
       // --
 
       sioRef.current.emit(
@@ -155,10 +174,9 @@ export default function IndexPage() {
       );
 
       replDispatch({ type: 'run', payload: { log: execute } });
-
       pRef.current.value = '';
 
-      if (replState.lastAction == 'run' && replState.log.length > 0) {
+      if (replState.lastAction == 'run' && replState.log.length > 0 && !isLocal) {
         if (pCodeRef.current != undefined) {
           console.log('in bus -> ', nbus);
 
