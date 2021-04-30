@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import TextareaAutosize from 'react-textarea-autosize';
 import RandExp from 'randexp';
 
-import { PCode } from '@h4us/p-code';
+import { PCode } from '@p-code-magazine/p-code';
 
 import { PlaygroundContext } from '../../components/playgroundcontext';
 import sioservice from '../../components/sioservice';
