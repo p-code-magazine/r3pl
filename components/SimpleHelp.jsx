@@ -10,7 +10,7 @@ export default function SimpleHelp(props) {
       }
       {
         replState.log.length > 0 &&
-        ` | <Ctrl+,> History backward | <Ctrl+.> History forward`
+        ` | <Ctrl+,> History backward | <Ctrl+.> History forward | <Ctrl+Shift+,> History backward (Server) | <Ctrl+Shift+.> History forward (Server)`
       }
       {
         (replState.rStack?.length > 0 && !['run', 'regexp'].includes(replState.lastAction)) &&

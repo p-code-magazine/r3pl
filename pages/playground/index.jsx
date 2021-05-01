@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useReducer, useContext } from 'react';
 
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useGesture } from 'react-use-gesture';
+import { useGesture, useWheel, useDrag } from 'react-use-gesture';
 import { useInView } from 'react-intersection-observer';
 
 import { useRouter } from 'next/router';
@@ -29,6 +29,7 @@ export default function IndexPage() {
   const pRef = useRef('');
   const logAreaRef = useRef();
   const logListRef = useRef();
+  const slogListRef = useRef();
   const pCodeRef = useRef([false, false, false, false, false, false]);
   const requestRef = useRef();
   const previousTimeRef = useRef();
@@ -37,7 +38,6 @@ export default function IndexPage() {
     // root: logAreaRef.current,
     rootMargin: '-10px 0px -10px 0px'
   });
-
   const [logEndRef, logEndInView ] = useInView({
     rootMargin: '-10px 0px -96px 0px'
   });
@@ -96,7 +96,8 @@ export default function IndexPage() {
 
   const popAction = _ => {
     if (
-      ['inc', 'dec', 'regexp'].includes(replState.lastAction)
+      // ['inc', 'dec', 'regexp'].includes(replState.lastAction)
+      ['inc', 'dec', 'jump', 'remote-inc', 'remote-dec', 'remote-jump', 'regexp'].includes(replState.lastAction)
       && replState.stack
     ) {
       pRef.current.value = replState.stack;
@@ -137,6 +138,26 @@ export default function IndexPage() {
 
   const decAction = _ => {
     replDispatch({ type: 'dec' });
+    setElapsed((n) => n + 1);
+  };
+
+  const serverIncAction = _ => {
+    replDispatch({ type: 'remote-inc' });
+    setElapsed((n) => n + 1);
+  };
+
+  const severDecAction = _ => {
+    replDispatch({ type: 'remote-dec' });
+    setElapsed((n) => n + 1);
+  };
+
+  const jumpAction = (to) => {
+    replDispatch({ type: 'jump', payload: { jumpTo: to }});
+    setElapsed((n) => n + 1);
+  };
+
+  const serverJumpAction = (to) => {
+    replDispatch({ type: 'remote-jump', payload: { jumpTo: to }});
     setElapsed((n) => n + 1);
   };
 
@@ -256,38 +277,27 @@ export default function IndexPage() {
     // [ runlog, minibuf ]
   );
 
-  useGesture(
-    {
-      onDrag: (state) => {
-        // TODO:
-        // console.log('drag', state);
-        if (logListRef.current) {
-          if ((logStartInView && !logEndInView && state.direction[1] > 0)
-            || (!logStartInView && logEndInView && state.direction[1] < 0)) {
-            replDispatch({
-              type: 'seek',
-              payload: { seekDelta: Math.round(state.direction[1]) * -1 * Math.min(Math.abs(state.delta[1]), 5) }
-            });
-            setElapsed((n) => n + 1);
-          }
-        }
-      },
-      onWheel: (state) => {
-        // TODO:
-        if (logListRef.current) {
-          if ((logStartInView && !logEndInView && state.direction[1] < 0)
-            || (!logStartInView && logEndInView && state.direction[1] > 0)) {
-            replDispatch({ type: 'seek', payload: { seekDelta: state.direction[1] } });
-            setElapsed((n) => n + 1);
-          }
-        }
-      }
-    },
-    {
-      domTarget: logListRef,
-      eventOptions: { passive: false }
-    }
+  useHotkeys(
+    'ctrl+shift+.', serverIncAction,
+    { enableOnTags: ['TEXTAREA'] }
   );
+
+  useHotkeys(
+    'ctrl+shift+,', severDecAction,
+    { enableOnTags: ['TEXTAREA'] }
+  );
+
+  const bindWheel = useWheel(({ args: [idx], direction, wheeling, delta, distance }) => {
+    // console.log(idx, direction, wheeling, delta, distance);
+
+    if (logListRef.current && idx == 0) {
+      replDispatch({ type: 'seek', payload: { seekDelta: direction[1] } });
+      setElapsed((n) => n + 1);
+    } else if (slogListRef.current && idx == 1) {
+      replDispatch({ type: 'server-seek', payload: { seekDelta: direction[1] } });
+      setElapsed((n) => n + 1);
+    }
+  });
 
   useEffect(() => {
     if (['run', 'reset', 'push', 'pop'].includes(replState.lastAction)) {
@@ -386,15 +396,17 @@ export default function IndexPage() {
         {/* history: local */}
         <div
           className="px-5 pt-5 py-24 overscroll-y-none w-1/2"
+          {...bindWheel(0)}
           ref={logListRef}>
-          <LogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} />
+          <LogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} jumpAction={jumpAction} />
         </div>
 
         {/* history: server */}
         <div
-          ref={logListRef}
-          className="px-5 pt-5 py-24 overscroll-y-none w-1/2">
-          <ServerLogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} />
+          className="px-5 pt-5 py-24 overscroll-y-none w-1/2"
+          {...bindWheel(1)}
+          ref={slogListRef}>
+          <ServerLogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} jumpAction={serverJumpAction} />
         </div>
       </main>
 
