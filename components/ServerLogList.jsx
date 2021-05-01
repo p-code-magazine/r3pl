@@ -25,21 +25,21 @@ export default function ServerLogList(props) {
           i == 0 ? (
             <li className="flex items-start log-item-first" ref={logStartRef} onClick={_ => jumpAction(Math.max(replState.serverSeekIndex, 0) + i)}>
               <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.serverSeekIndex, 0) + i}</span>
-              <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username}[{el.bus}]</span>
+              <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username} [{el.bus}]</span>
               <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el.message}</mark>
             </li>
           ) : (
               (replState.serverLog.length > 1 && i == (Math.min(replState.serverLog.length, 30) - 1)) ? (
                 <li className="flex items-start log-item-last" ref={logEndRef} onClick={_ => jumpAction(Math.max(replState.serverSeekIndex, 0) + i)}>
                   <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.serverSeekIndex, 0) + i}</span>
-                  <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username}[{el.bus}]</span>
+                  <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username} [{el.bus}]</span>
                   <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el.message}</mark>
                 </li>
 
               ) : (
                   <li className="flex items-start" onClick={_ => jumpAction(Math.max(replState.serverSeekIndex, 0) + i)}>
                     <span className="w-10 flex-shrink-0 text-gray-500">{Math.max(replState.serverSeekIndex, 0) + i}</span>
-                    <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username}[{el.bus}]</span>
+                    <span className="mr-4 flex-shrink-0" style={{ color: getUsernameColor(el.username) }}>{el.username} [{el.bus}]</span>
                     <mark className="flex-shrink bg-transparent hover:bg-gray-400">{el.message}</mark>
                   </li>
                 )
