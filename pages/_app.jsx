@@ -8,6 +8,8 @@ import { PlaygroundContext } from '../components/playgroundcontext';
 import '../styles/index.css';
 
 function MyApp({ Component, pageProps }) {
+  console.info(`%cR3PL : version - ${process.env.NEXT_PUBLIC_R3PL_VERSION}`, 'background:black; color:white; padding: 0.1rem 0.5rem;');
+
   const router = useRouter();
 
   // TODO:
