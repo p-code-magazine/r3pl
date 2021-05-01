@@ -26,6 +26,35 @@ body, html {
   @apply bg-blue-500 text-white font-bold py-2 px-4 rounded;
 }
 
+.help table {
+  border-collapse: collapse;
+}
+
+.help table th,
+.help table td {
+  padding: .25rem .5rem;
+  border: 1px solid rgba(255,255,255,.75);
+}
+
+.help p {
+  margin-top: .33rem;
+  margin-bottom: .33rem;
+}
+
+.help .item {
+  margin-bottom: .75rem;
+}
+
+.help > section, .help > .item {
+  font-size: 75%;
+}
+
+.cmdhelp {
+  font-style: italic;
+  font-weight: 800;
+}
+
+
 /* Start purging... */
 @tailwind utilities;
 /* Stop purging. */

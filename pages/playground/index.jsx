@@ -16,6 +16,7 @@ import sioservice from '../../components/sioservice';
 import replReducer from '../../components/replservice';
 
 import SimpleHelp from '../../components/SimpleHelp';
+import CommandHelp from '../../components/CommandHelp';
 import HotkeyButtons from '../../components/HotkeyButtons';
 import LogList from '../../components/LogList';
 import ServerLogList from '../../components/ServerLogList';
@@ -25,6 +26,7 @@ export default function IndexPage() {
   const router = useRouter();
 
   const [elapsed, setElapsed] = useState(0);
+  const [showCmdhelp, setShowCmdHelp] = useState(false);
 
   const pRef = useRef('');
   const logAreaRef = useRef();
@@ -180,6 +182,10 @@ export default function IndexPage() {
             busRef.current = 'auto';
           }
         }
+
+        if (execute.indexOf('$ help') == 0) {
+          setShowCmdHelp((c) => !c);
+        }
       }
 
       //
@@ -247,7 +253,9 @@ export default function IndexPage() {
   });
 
   useHotkeys(
-    'esc', resetAction,
+    'esc', _ => {
+      showCmdhelp ? setShowCmdHelp(false)  : resetAction();
+    },
     { enableOnTags: ['TEXTAREA', 'INPUT'] }
   );
 
@@ -410,6 +418,8 @@ export default function IndexPage() {
         </div>
       </main>
 
+      <CommandHelp show={showCmdhelp} />
+
       <footer className="fixed bottom-0 w-full bg-white overscroll-y-none max-h-screen">
         {/* real textarea & completion view */}
         <div className="flex flex-no-wrap items-stretch justify-between w-full pl-2 pr-5 my-2">
@@ -442,13 +452,13 @@ export default function IndexPage() {
         <SimpleHelp replState={replState} />
 
         {/* hotkey alternative, for mobile device */}
-        <HotkeyButtons
-          runAction={runAction}
-          regexpAction={regexpAction}
-          resetAction={resetAction}
-          popAction={popAction}
-          incAction={incAction}
-          decAction={decAction} />
+        {/* <HotkeyButtons */}
+        {/*   runAction={runAction} */}
+        {/*   regexpAction={regexpAction} */}
+        {/*   resetAction={resetAction} */}
+        {/*   popAction={popAction} */}
+        {/*   incAction={incAction} */}
+        {/*   decAction={decAction} /> */}
       </footer>
     </>
   );
