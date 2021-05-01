@@ -16,6 +16,7 @@ export default function SimpleHelp(props) {
         (replState.rStack?.length > 0 && !['run', 'regexp'].includes(replState.lastAction)) &&
         ` | <Esc> Pop original RegExp`
       }
+      { ` | Type "$ help" show command help` }
     </div>
   );
 }
