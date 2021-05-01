@@ -124,9 +124,15 @@ export default function IndexPage() {
     }
 
     if (re && src.length > 0) {
+      const rre = new RandExp(re);
+      rre.max = 600;
+      const rrer = rre.gen();
+
+      // console.log(rrer.length);
+
       replDispatch({
         type: 'regexp',
-        payload: { rStack: src, result: new RandExp(re).gen() }
+        payload: { rStack: src, result: rrer }
       });
       setElapsed((n) => n + 1);
     }
@@ -192,6 +198,14 @@ export default function IndexPage() {
       // const nbus = Math.floor(Math.random() * pCodeRef.current.length);
       const nbus = busRef.current == 'auto' ? Math.floor(Math.random() * pCodeRef.current.length) : busRef.current;
       // --
+
+      const nestLimit = execute.match(/\</g);
+      if (nestLimit && nestLimit.length > 19) {
+        // TODO: alert
+        window.alert(`Nest overflow ${nestLimit.length}`);
+        // --
+        return;
+      }
 
       sioRef.current.emit(
         'new message', {
