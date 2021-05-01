@@ -32,7 +32,7 @@ export default function IndexPage() {
   const logAreaRef = useRef();
   const logListRef = useRef();
   const slogListRef = useRef();
-  const pCodeRef = useRef([false, false, false, false, false, false]);
+  const pCodeRef = useRef([false, false, false, false, false, false, false, false]);
   const requestRef = useRef();
   const previousTimeRef = useRef();
 
@@ -355,6 +355,14 @@ export default function IndexPage() {
             }
           });
 
+          // TODO:
+          const ll = document.querySelectorAll('.log-item-last');
+          if (ll) {
+            ll.forEach((el) => {
+              el.scrollIntoView();
+            });
+          }
+
           replDispatch({ type: 'server-run' });
         }
       }
@@ -412,12 +420,12 @@ export default function IndexPage() {
   return (
     <>
       <main
-        className="absolute left-0 top-0 flex w-full max-h-screen overflow-y-scroll"
+        className="absolute left-0 top-0 flex w-full max-h-screen"
         ref={logAreaRef}>
 
         {/* history: local */}
         <div
-          className="px-5 pt-5 py-24 overscroll-y-none w-1/2"
+          className="px-5 pt-5 py-24 w-1/2 overflow-y-scroll max-h-screen"
           {...bindWheel(0)}
           ref={logListRef}>
           <LogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} jumpAction={jumpAction} />
@@ -425,13 +433,14 @@ export default function IndexPage() {
 
         {/* history: server */}
         <div
-          className="px-5 pt-5 py-24 overscroll-y-none w-1/2"
+          className="px-5 pt-5 py-24 w-1/2 overflow-y-scroll max-h-screen "
           {...bindWheel(1)}
           ref={slogListRef}>
           <ServerLogList replState={replState} logStartRef={logStartRef} logEndRef={logEndRef} jumpAction={serverJumpAction} />
         </div>
       </main>
 
+      {/* command help */}
       <CommandHelp show={showCmdhelp} />
 
       <footer className="fixed bottom-0 w-full bg-white overscroll-y-none max-h-screen">
