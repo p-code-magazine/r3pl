@@ -1,6 +1,6 @@
 {
   "name": "r3pl",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "author": "p-code-magazine",
   "repository": {
     "type": "git",
@@ -13,18 +13,18 @@
     "export": "next export"
   },
   "dependencies": {
-    "@h4us/p-code": "git+https://github.com/h4us/p-code.git#experimental",
-    "next": "^10.0.7",
+    "@p-code-magazine/p-code": "^1.1.0",
+    "next": "^10.2.0",
     "next-plugin-preact": "^3.0.3",
-    "next-pwa": "^5.0.5",
-    "preact": "^10.5.12",
-    "preact-render-to-string": "^5.1.12",
+    "next-pwa": "^5.2.16",
+    "preact": "^10.5.13",
+    "preact-render-to-string": "^5.1.19",
     "randexp": "^0.5.3",
     "react": "npm:@preact/compat@0.0.4",
     "react-dom": "npm:@preact/compat@0.0.4",
-    "react-hotkeys-hook": "^3.1.0",
-    "react-intersection-observer": "^8.31.0",
-    "react-textarea-autosize": "^8.3.1",
+    "react-hotkeys-hook": "^3.3.1",
+    "react-intersection-observer": "^8.31.1",
+    "react-textarea-autosize": "^8.3.2",
     "react-use-gesture": "^9.0.4",
     "socket.io-client": "^2.4.0"
   },

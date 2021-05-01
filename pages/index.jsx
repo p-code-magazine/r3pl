@@ -7,7 +7,7 @@ import { useInView } from 'react-intersection-observer';
 import TextareaAutosize from 'react-textarea-autosize';
 import RandExp from 'randexp';
 
-import { PCode } from '@h4us/p-code';
+import { PCode } from '@p-code-magazine/p-code';
 
 const replReducer = (state, action) => {
   const { logSize } = state;
